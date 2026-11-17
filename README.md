@@ -1,4 +1,35 @@
-# Qualité de l'eau potable (Orobnat) pour Home Assistant
+<p>
+  ☕ <strong>Si cette intégration vous est utile, vous pouvez soutenir le projet :</strong>
+</p>
+
+<div style="white-space: nowrap; line-height: 0;">
+  <a
+    href="https://www.buymeacoffee.com/Marlboro62"
+    target="_blank"
+    rel="noopener noreferrer"
+    style="display: inline-block; text-decoration: none; vertical-align: middle;"
+  ><img
+    src="https://img.buymeacoffee.com/button-api/?text=Offrir%20un%20caf%C3%A9&emoji=%E2%98%95&slug=Marlboro62&button_colour=FF5F5F&font_colour=ffffff&font_family=Cookie&outline_colour=000000&coffee_colour=FFDD00"
+    alt="Offrir un café sur Buy Me a Coffee"
+    height="45"
+    style="display: block; border: 0;"
+  ></a>&nbsp;&nbsp;<a
+    href="https://ko-fi.com/M4M2QL45X"
+    target="_blank"
+    rel="noopener noreferrer"
+    style="display: inline-block; text-decoration: none; vertical-align: middle;"
+  ><img
+    src="https://storage.ko-fi.com/cdn/kofi6.png?v=6"
+    alt="Soutenir le projet sur Ko-fi"
+    height="45"
+    style="display: block; border: 0;"
+  ></a>
+</div>
+
+# <img src="custom_components/orobnat/brand/icon.png" alt="" height="40" align="top"> Qualité de l'eau potable (Orobnat) pour Home Assistant
+
+[![Marketplace Custom](https://img.shields.io/badge/Marketplace-Custom-41BDF5.svg)](https://www.home-assistant.io/integrations/marketplace/)
+[![Release](https://img.shields.io/github/v/release/Marlboro62/ha-qualite-eau)](https://github.com/Marlboro62/ha-qualite-eau/releases)
 
 Suivez la qualité de l'eau du robinet de votre commune, avec les **derniers résultats du contrôle sanitaire** publiés par les ARS sur [orobnat.sante.gouv.fr](https://orobnat.sante.gouv.fr) : nitrates, chlore, pH, dureté, bactéries, conformité…
 
@@ -8,6 +39,18 @@ Ces données sont souvent **plus récentes** (quelques jours) que celles de l'AP
 - Un capteur par paramètre analysé, avec unité et historique (graphiques)
 - Une **carte Lovelace** incluse, sans installation séparée
 - Plusieurs communes possibles
+
+🎮 **[Essayer la démo en ligne](https://marlboro62.github.io/ha-qualite-eau/docs/demo.html)** : la vraie carte avec des données simulées, sans installer Home Assistant.
+
+| Sombre, bulletin complet | Clair, nitrates au-dessus de la limite (paramètres principaux) |
+| --- | --- |
+| ![Carte en thème sombre](https://raw.githubusercontent.com/Marlboro62/ha-qualite-eau/main/images/carte-sombre.png) | ![Carte en thème clair, non conforme](https://raw.githubusercontent.com/Marlboro62/ha-qualite-eau/main/images/carte-clair-non-conforme.png) |
+
+*Aperçus avec une commune et des valeurs fictives.*
+
+## Remerciements
+
+Merci à **[Cede69](https://forum.hacf.fr/u/cede69)** pour l'idée de départ : son sujet sur le forum HACF, [Suivi de la qualité de l'eau en France](https://forum.hacf.fr/t/suivi-de-la-qualite-de-leau-en-france/85720), a montré que le site Orobnat publiait des résultats bien plus récents que Hub'Eau. Cette intégration en est née. 💧
 
 ## Installation
 

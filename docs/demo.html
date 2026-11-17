@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carte Qualité de l'eau — démo</title>
+<link rel="icon" href="../custom_components/orobnat/brand/icon.png">
+<style>
+:root { color-scheme: dark; }
+body { margin: 0; padding: 24px 16px; background: #111823; font-family: Roboto, "Segoe UI", system-ui, sans-serif; color: #e7edf5;
+  --primary-text-color: #e1e1e1; --secondary-text-color: #9b9b9b; --divider-color: #2c2f36; --disabled-color: #6f6f6f;
+  --card-background-color: #1c1f26; }
+body.light { background: #eef2f7; color: #1a2434; color-scheme: light;
+  --primary-text-color: #212121; --secondary-text-color: #727272; --divider-color: #e0e0e0; --disabled-color: #bdbdbd;
+  --card-background-color: #fff; }
+.wrap { max-width: 520px; margin: 0 auto; display: grid; gap: 16px; }
+.bar { display: flex; gap: 8px; flex-wrap: wrap; font-size: 14px; }
+button { padding: 6px 12px; border-radius: 8px; border: 1px solid #2f3d55; background: #212d40; color: inherit; cursor: pointer; font: inherit; }
+button.on { border-color: #4fc3f7; }
+body.light button { background: #fff; border-color: #dbe2ec; }
+body.light button.on { border-color: #0277bd; }
+ha-card { display: block; background: var(--card-background-color); border-radius: 12px; border: 1px solid var(--divider-color); }
+ha-icon { display: inline-flex; width: var(--mdc-icon-size, 24px); height: var(--mdc-icon-size, 24px); }
+ha-icon svg { width: 100%; height: 100%; fill: currentColor; }
+.note { font-size: 13px; color: var(--secondary-text-color); line-height: 1.5; }
+.note a { color: inherit; }
+</style></head>
+<body>
+<div class="wrap">
+  <div class="bar">
+    <button data-theme="dark" class="on">Sombre</button><button data-theme="light">Clair</button>
+    <button data-act="nitrates">Nitrates au-dessus de la limite</button>
+    <button data-act="cot">Référence non respectée</button>
+    <button data-act="filtre">Paramètres principaux</button>
+    <button data-act="reset">Réinitialiser</button>
+  </div>
+  <div id="host"></div>
+  <p class="note">Démo de la carte fournie avec l'intégration
+    <a href="https://github.com/Marlboro62/ha-qualite-eau">Qualité de l'eau (Orobnat)</a>.
+    Commune et valeurs <strong>fictives</strong>, inspirées d'un bulletin réel du contrôle sanitaire.</p>
+</div>
+
+<script>
+// Home Assistant fournit <ha-icon> ; ici, une version minimale pour les icônes de la carte.
+const ICONS = {
+  "mdi:water-check": "M12 3C9 7 6 10.5 6 14a6 6 0 0 0 12 0c0-3.5-3-7-6-11zm-1.2 15-3.3-3.3 1.4-1.4 1.9 1.9 4.3-4.3 1.4 1.4z",
+  "mdi:water-alert": "M12 3C9 7 6 10.5 6 14a6 6 0 0 0 12 0c0-3.5-3-7-6-11zm1 15h-2v-2h2zm0-4h-2V9h2z",
+  "mdi:check-circle": "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-2 15-5-5 1.4-1.4 3.6 3.6 7.6-7.6L19 8z",
+  "mdi:alert-circle": "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 15h-2v-2h2zm0-4h-2V7h2z",
+};
+customElements.define("ha-icon", class extends HTMLElement {
+  connectedCallback() {
+    const d = ICONS[this.getAttribute("icon")] || "";
+    (this.shadowRoot || this.attachShadow({ mode: "open" })).innerHTML =
+      `<style>:host{display:inline-flex;width:var(--mdc-icon-size,24px);height:var(--mdc-icon-size,24px)}
+       svg{width:100%;height:100%;fill:currentColor}</style>
+       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+  }
+});
+// … et <ha-card>
+customElements.define("ha-card", class extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" }).innerHTML =
+      `<style>:host{display:block;background:var(--card-background-color);border-radius:12px;
+       border:1px solid var(--divider-color);color:var(--primary-text-color)}</style><slot></slot>`;
+  }
+});
+</script>
+<script src="../custom_components/orobnat/www/qualite-eau-card.js"></script>
+<script>
+const DAY = 86400e3;
+// Bulletin fictif (commune d'exemple), structure identique aux attributs du capteur « Bulletin ».
+const ANALYSES = [
+  ["Entérocoques /100ml-MS", "<1 n/(100mL)", "≤ 0 n/(100mL)", ""],
+  ["Bactéries coliformes /100ml-MS", "<1 n/(100mL)", "", "≤ 0 n/(100mL)"],
+  ["Escherichia coli /100ml - MF", "<1 n/(100mL)", "≤ 0 n/(100mL)", ""],
+  ["Bact. aér. revivifiables à 22°-68h", "3 n/mL", "", ""],
+  ["Température de l'eau *", "14,6 °C", "≥ et ≤ °C", "≥ et ≤ 25 °C"],
+  ["Coloration", "<5 mg(Pt)/L", "", "≤ 15 mg(Pt)/L"],
+  ["Aspect (qualitatif)", "Aspect normal", "", ""],
+  ["Odeur (qualitatif)", "Aucun changement anormal", "", ""],
+  ["Saveur (qualitatif)", "Aucun changement anormal", "", ""],
+  ["Turbidité néphélométrique NFU", "<0,1 NFU", "", "≤ 2 NFU"],
+  ["Chlore libre *", "0,21 mg(Cl2)/L", "", ""],
+  ["Chlore total *", "0,27 mg(Cl2)/L", "", ""],
+  ["pH *", "7,6 unité pH", "", "≥6,5 et ≤ 9 unité pH"],
+  ["Titre hydrotimétrique", "22,4 °f", "", ""],
+  ["Calcium", "78,0 mg/L", "", ""],
+  ["Magnésium", "6,9 mg(Mg)/L", "", ""],
+  ["Conductivité à 25°C", "512 µS/cm", "", "≥200 et ≤ 1100 µS/cm"],
+  ["Sulfates", "28,40 mg/L", "", "≤ 250 mg/L"],
+  ["Chlorures", "19,30 mg/L", "", "≤ 250 mg/L"],
+  ["Ammonium (en NH4)", "<0,01 mg/L", "≥ et ≤ mg/L", "≥ et ≤ 0,1 mg/L"],
+  ["Nitrites (en NO2)", "<0,01 mg/L", "≤ 0,5 mg/L", ""],
+  ["Nitrates (en NO3)", "18,60 mg/L", "≤ 50 mg/L", ""],
+  ["Carbone organique total", "0,82 mg(C)/L", "", "≤ 2 mg(C)/L"],
+].map(([parametre, valeur, limite, reference]) => ({ parametre, valeur, limite, reference }));
+
+const CONFORME = "Eau d'alimentation conforme aux exigences de qualité en vigueur pour l'ensemble des paramètres mesurés.";
+const NON_CONFORME = "Eau d'alimentation non conforme aux limites de qualité pour le paramètre nitrates. Consulter les recommandations de l'ARS.";
+
+let etat;
+function reset() {
+  etat = { analyses: ANALYSES.map((a) => ({ ...a })), nitrates: false, cot: false, filtre: false };
+}
+reset();
+
+function hass() {
+  const analyses = etat.analyses.map((a) => {
+    if (etat.nitrates && a.parametre.startsWith("Nitrates (en")) return { ...a, valeur: "58,30 mg/L" };
+    if (etat.cot && a.parametre.startsWith("Carbone organique")) return { ...a, valeur: "2,40 mg(C)/L" };
+    return a;
+  });
+  return { states: { "sensor.eau_ville_exemple_bulletin": {
+    entity_id: "sensor.eau_ville_exemple_bulletin",
+    state: etat.nitrates ? "Non conforme" : "Conforme",
+    attributes: {
+      commune: "VILLE-EXEMPLE",
+      reseau: "RÉSEAU NORD (EXEMPLE)",
+      date_prelevement: new Date(Date.now() - 6 * DAY).toISOString(),
+      conclusions: etat.nitrates ? NON_CONFORME : CONFORME,
+      conformite_bacteriologique: "oui",
+      conformite_physico_chimique: etat.nitrates ? "non" : "oui",
+      respect_references_qualite: etat.cot ? "non" : "oui",
+      analyses,
+      source: "https://orobnat.sante.gouv.fr",
+    } } } };
+}
+
+const card = document.createElement("qualite-eau-card");
+function config() {
+  const c = { type: "custom:qualite-eau-card", entity: "sensor.eau_ville_exemple_bulletin" };
+  if (etat.filtre) Object.assign(c, { parametres: ["Nitrates (en", "Chlore libre", "pH", "Titre hydrotimétrique", "Escherichia"], conclusions: false });
+  return c;
+}
+card.setConfig(config());
+card.hass = hass();
+document.getElementById("host").appendChild(card);
+
+const p = new URLSearchParams(location.search);
+function theme(t) {
+  document.body.classList.toggle("light", t === "light");
+  document.querySelectorAll("[data-theme]").forEach((b) => b.classList.toggle("on", b.dataset.theme === t));
+}
+if (p.get("theme") === "light") theme("light");
+
+document.querySelector(".bar").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.theme) theme(b.dataset.theme);
+  const act = b.dataset.act;
+  if (act === "reset") reset();
+  else if (act) etat[act] = !etat[act];
+  document.querySelectorAll("[data-act]").forEach((x) => x.classList.toggle("on", !!etat[x.dataset.act]));
+  card.setConfig(config());
+  card.hass = hass();
+});
+</script></body></html>
