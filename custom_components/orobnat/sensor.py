@@ -1,6 +1,7 @@
 """Capteurs : bulletin (avec tout le détail pour la carte), date, un capteur par paramètre."""
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Any
 
@@ -167,6 +168,20 @@ class ParametreSensor(_Base):
             self._attr_state_class = SensorStateClass.MEASUREMENT
             if unite == "°C":
                 self._attr_device_class = SensorDeviceClass.TEMPERATURE
+
+    @property
+    def suggested_display_precision(self) -> int | None:
+        """Autant de décimales que le site en publie (« 39 » -> 0, « 0,43 » -> 2).
+
+        Une valeur sous le seuil (« <0,01 ») vaut 0 : affichée « 0 », pas « 0,00 ».
+        """
+        if not self._numeric:
+            return None
+        raw = self._p["valeur"]
+        if raw.strip().startswith("<"):
+            return 0
+        m = re.search(r"\d+(?:[.,](\d+))?", raw)
+        return len(m.group(1)) if m and m.group(1) else 0
 
     @property
     def _p(self) -> dict[str, str]:
