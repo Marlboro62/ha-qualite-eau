@@ -1,13 +1,22 @@
 {
   "domain": "orobnat",
   "name": "Qualité de l'eau (Orobnat)",
-  "codeowners": ["@Marlboro62"],
+  "categories": [
+    "water",
+    "local_services"
+  ],
+  "codeowners": [
+    "@Marlboro62"
+  ],
   "config_flow": true,
-  "dependencies": ["http", "frontend"],
+  "dependencies": [
+    "http",
+    "frontend"
+  ],
   "documentation": "https://github.com/Marlboro62/ha-qualite-eau",
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/Marlboro62/ha-qualite-eau/issues",
   "requirements": [],
-  "version": "1.0.2"
+  "version": "1.0.3"
 }
