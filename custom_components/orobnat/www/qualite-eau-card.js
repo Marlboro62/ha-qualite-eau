@@ -8,7 +8,7 @@
  *   parametres: [Nitrates, Chlore libre, pH, Titre hydrotimétrique]  # filtre (début du nom)
  *   conclusions: true
  */
-const CARD_VERSION = "1.0.0";
+const CARD_VERSION = "1.0.2";
 
 const num = (s) => {
   const m = String(s ?? "").match(/-?\d+(?:[.,]\d+)?/);
@@ -116,7 +116,8 @@ class QualiteEauCard extends HTMLElement {
         } else if (v === null) {
           etat = "na";
         }
-        const seuil = propre(r.limite) || propre(r.reference);
+        // « ≥ et ≤ 25 °C » (pas de minimum publié) -> « ≤ 25 °C »
+        const seuil = (propre(r.limite) || propre(r.reference)).replace(/≥\s*et\s+/, "").trim();
         return `<tr title="${esc(info)}">
           <td><span class="dot ${etat}"></span>${esc(r.parametre.replace(/\s*\*$/, ""))}</td>
           <td class="val">${esc(r.valeur)}</td>
@@ -126,12 +127,15 @@ class QualiteEauCard extends HTMLElement {
       .join("");
 
     const titre = this._config.title || `Eau du robinet – ${a.commune ? a.commune : ""}`;
+    // Nom du réseau seulement s'il apporte une information (≠ nom de la commune).
+    const norm = (s) => String(s ?? "").normalize("NFD").replace(/[^a-z0-9]/gi, "").toLowerCase();
+    const sousTitre = a.reseau && norm(a.reseau) !== norm(a.commune) ? a.reseau : "";
     root.innerHTML = `
       <ha-card>
         <div class="head">
           <div>
             <div class="titre">${esc(titre)}</div>
-            <div class="sous">${esc(a.reseau || "")}</div>
+            ${sousTitre ? `<div class="sous">${esc(sousTitre)}</div>` : ""}
           </div>
           <div class="badge ${inconnu ? "na" : conforme ? "ok" : "bad"}">
             <ha-icon icon="${conforme ? "mdi:water-check" : "mdi:water-alert"}"></ha-icon>
