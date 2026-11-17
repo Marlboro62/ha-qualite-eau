@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Qualité de l'eau potable",
+        "description": "Choisissez votre région. Les données viennent du contrôle sanitaire des ARS (orobnat.sante.gouv.fr).",
+        "data": { "region": "Région" }
+      },
+      "departement": {
+        "title": "Département",
+        "data": { "departement": "Département" }
+      },
+      "commune": {
+        "title": "Commune",
+        "data": { "commune": "Commune" }
+      },
+      "reseau": {
+        "title": "Réseau de distribution",
+        "description": "Plusieurs réseaux alimentent {commune}. Choisissez celui de votre adresse (voir votre facture d'eau ou votre mairie en cas de doute).",
+        "data": { "reseau": "Réseau" }
+      }
+    },
+    "abort": {
+      "already_configured": "Cette commune et ce réseau sont déjà configurés.",
+      "cannot_connect": "Impossible de joindre orobnat.sante.gouv.fr. Réessayez plus tard.",
+      "no_reseau": "Aucun réseau de distribution n'est publié pour cette commune."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "bulletin": { "name": "Bulletin" },
+      "date_prelevement": { "name": "Date du prélèvement" }
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Drinking water quality",
+        "description": "Choose your region. Data comes from the French health authorities' sanitary checks (orobnat.sante.gouv.fr).",
+        "data": { "region": "Region" }
+      },
+      "departement": {
+        "title": "Département",
+        "data": { "departement": "Département" }
+      },
+      "commune": {
+        "title": "Town",
+        "data": { "commune": "Town" }
+      },
+      "reseau": {
+        "title": "Distribution network",
+        "description": "Several networks supply {commune}. Choose the one serving your address (see your water bill or ask your town hall).",
+        "data": { "reseau": "Network" }
+      }
+    },
+    "abort": {
+      "already_configured": "This town and network are already configured.",
+      "cannot_connect": "Cannot reach orobnat.sante.gouv.fr. Try again later.",
+      "no_reseau": "No distribution network is published for this town."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "bulletin": { "name": "Report" },
+      "date_prelevement": { "name": "Sampling date" }
+    }
+  }
+}
