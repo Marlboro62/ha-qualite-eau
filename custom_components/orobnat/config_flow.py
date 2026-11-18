@@ -43,7 +43,7 @@ class OrobnatConfigFlow(ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OrobnatOptionsFlow:
-        return OrobnatOptionsFlow()
+        return OrobnatOptionsFlow(config_entry)
 
     def __init__(self) -> None:
         self._data: dict[str, str] = {}
@@ -147,6 +147,10 @@ class OrobnatConfigFlow(ConfigFlow, domain=DOMAIN):
 class OrobnatOptionsFlow(OptionsFlow):
     """Options : seulement les prélèvements faits dans la commune choisie."""
 
+    def __init__(self, entry: ConfigEntry) -> None:
+        # nom propre (pas config_entry) : compatible avec les versions de Home Assistant avant et après 2024.11
+        self._entry = entry
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -158,11 +162,11 @@ class OrobnatOptionsFlow(OptionsFlow):
                 {
                     vol.Optional(
                         CONF_MA_COMMUNE,
-                        default=self.config_entry.options.get(CONF_MA_COMMUNE, False),
+                        default=self._entry.options.get(CONF_MA_COMMUNE, False),
                     ): bool,
                 }
             ),
             description_placeholders={
-                "commune": self.config_entry.data.get(CONF_COMMUNE_NOM, ""),
+                "commune": self._entry.data.get(CONF_COMMUNE_NOM, ""),
             },
         )
