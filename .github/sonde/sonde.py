@@ -1,23 +1,22 @@
-"""Sonde temporaire : bulletins précédents (posPLV) sur Orobnat."""
-import sys
+"""Sonde temporaire : recherche du dernier prélèvement de la commune."""
+import sys, time
 sys.path.insert(0, "custom_components/orobnat")
 import api  # noqa: E402
 
-def run(region, dep_pick, n=4, extra=(30, 400)):
+def run(region, dep_prefix, idx=0):
     c = api.OrobnatClient(region)
-    deps = c.departements()
-    dep = next(v for v, l in deps if dep_pick(v, l))
-    com = c.communes(dep)[0][0]
+    dep = next(v for v, l in c.departements() if v.startswith(dep_prefix))
+    com, nom = c.communes(dep)[idx]
     res = c.reseaux(dep, com)[0][0]
-    b = c.bulletin(dep, com, res)
-    print("==", region, dep, com, res, "| pos 0:", b.infos.get("Date du prélèvement"), b.infos.get("Commune de prélèvement"))
-    for pos in list(range(1, n)) + list(extra):
-        c._post("rechercher", departement=dep, communeDepartement=com, reseau=res, posPLV=str(pos))
-        bb = api.parse_bulletin(c._last_html)
-        print(f"   pos {pos}: date={bb.infos.get('Date du prélèvement')} commune={bb.infos.get('Commune de prélèvement')} analyses={len(bb.analyses)} posPLV_renvoye={c._page and [v for v in [c._form.get('posPLV')]]}")
-        import re
-        m = re.search(r'name="posPLV" value="(\d*)"', c._last_html)
-        print("      posPLV dans la page:", m.group(1) if m else None)
+    t = time.time()
+    b = c.bulletin(dep, com, res, commune_nom=nom, max_bulletins=20, max_age_days=730)
+    print(f"== {nom} ({com}) réseau {res} : position={b.position} trouvée={b.commune_trouvee} "
+          f"date={b.infos.get('Date du prélèvement')} commune_prélèvement={b.infos.get('Commune de prélèvement')} "
+          f"analyses={len(b.analyses)} en {time.time()-t:.1f} s")
+    c2 = api.OrobnatClient(region)
+    b0 = c2.bulletin(dep, com, res)
+    print(f"   sans l'option : date={b0.infos.get('Date du prélèvement')} commune={b0.infos.get('Commune de prélèvement')}")
 
-run("11", lambda v, l: v.startswith("075"))
-run("75", lambda v, l: v.startswith("017"), n=6)
+run("11", "075")
+for i in (0, 3, 10):
+    run("75", "017", i)
