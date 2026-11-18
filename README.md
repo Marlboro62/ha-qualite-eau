@@ -54,13 +54,14 @@ Merci à **[Cede69](https://forum.hacf.fr/u/cede69)** pour l'idée de départ : 
 
 ## Installation
 
-### Avec la Marketplace (Home Assistant 2026.11 et plus récent)
+### Avec la Marketplace (ou HACS avant Home Assistant 2026.11)
 
-1. **Paramètres → Marketplace**, puis **Add from link** (en haut à droite).
-2. Collez `https://github.com/Marlboro62/ha-qualite-eau` et choisissez le type **Integration**.
-3. Installez « Qualité de l'eau (Orobnat) », puis **redémarrez Home Assistant**.
+[![Ouvrir dans Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Marlboro62&repository=ha-qualite-eau&category=integration)
 
-> Sur une version plus ancienne avec HACS : HACS → ⋮ → Dépôts personnalisés → même lien, catégorie *Intégration*.
+1. Ouvrez **Paramètres → Marketplace** (ou HACS avant la 2026.11), ou utilisez le bouton ci-dessus.
+2. Cherchez **Qualité de l'eau (Orobnat)**, installez-la, puis **redémarrez Home Assistant**.
+
+Si l'intégration n'apparaît pas dans la recherche, ajoutez-la par son adresse : **Add from link** en haut à droite de la Marketplace (ou HACS → ⋮ → **Dépôts personnalisés**), collez `https://github.com/Marlboro62/ha-qualite-eau`, type **Intégration**, puis reprenez l'étape 2.
 
 ### Manuelle
 
