@@ -50,7 +50,7 @@ Ces données sont souvent **plus récentes** (quelques jours) que celles de l'AP
 
 ## Remerciements
 
-Merci à **[Cede69](https://forum.hacf.fr/u/cede69)** pour l'idée de départ : son sujet sur le forum HACF, [Suivi de la qualité de l'eau en France](https://forum.hacf.fr/t/suivi-de-la-qualite-de-leau-en-france/85720), a montré que le site Orobnat publiait des résultats bien plus récents que Hub'Eau. Cette intégration en est née. 💧
+Merci à **[Cede69](https://forum.hacf.fr/u/cede69)** pour l'idée de départ : son sujet sur le forum HACF, [Suivi de la qualité de l'eau en France](https://forum.hacf.fr/t/suivi-de-la-qualite-de-leau-en-france/85720), a montré que le site Orobnat publiait des résultats bien plus récents que Hub'Eau. Cette intégration en est née. 💧 Merci aussi à **[alju](https://forum.hacf.fr/u/alju)** pour l'idée de l'option « prélèvements de ma commune ».
 
 ## Installation
 
@@ -77,6 +77,14 @@ Copiez le dossier `custom_components/orobnat` dans le dossier `custom_components
 4. votre **réseau de distribution** (seulement si la commune en a plusieurs).
 
 Les listes viennent directement du site du ministère : aucun code à chercher. Recommencez pour ajouter une autre commune.
+
+### Prélèvements de ma commune (option)
+
+Un réseau dessert souvent plusieurs communes, et l'ARS prélève tour à tour dans chacune : le dernier bulletin du réseau peut venir d'une commune voisine. Toutes les communes d'un même réseau reçoivent **la même eau**, donc ce bulletin reste représentatif.
+
+Pour n'afficher que les prélèvements faits dans votre commune : **Paramètres → Appareils et services → Qualité de l'eau (Orobnat) → Configurer**, puis cochez **Seulement les prélèvements faits à …**. L'intégration remonte alors les bulletins précédents jusqu'au dernier prélèvement fait dans votre commune, au plus 20 bulletins et 2 ans. Si elle n'en trouve pas, elle garde le dernier bulletin du réseau.
+
+Le bulletin de votre commune peut être nettement plus ancien que celui du réseau. Les attributs du capteur de conformité indiquent la commune du prélèvement (`commune_prelevement`), le nombre de bulletins remontés (`bulletins_remontes`) et si un prélèvement de la commune a été trouvé (`prelevement_dans_la_commune`).
 
 ## Entités créées
 

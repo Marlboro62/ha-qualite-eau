@@ -11,8 +11,9 @@ via hass.async_add_executor_job.
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from html.parser import HTMLParser
 
 import requests
@@ -68,6 +69,9 @@ class Bulletin:
 
     infos: dict[str, str] = field(default_factory=dict)
     analyses: list[Analyse] = field(default_factory=list)
+    # rang du bulletin (0 = le plus récent du réseau) et, si la commune était demandée, s'il en vient
+    position: int = 0
+    commune_trouvee: bool | None = None
 
     @property
     def date_prelevement(self) -> datetime | None:
@@ -141,6 +145,17 @@ def _parse(html: str) -> _PageParser:
     p.feed(html)
     p.close()
     return p
+
+
+def same_commune(a: str, b: str) -> bool:
+    """Même commune malgré accents, casse, tirets et « Saint » / « St » (« ST-JEAN » = « Saint-Jean »)."""
+    def norm(s: str) -> str:
+        s = unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode().upper()
+        s = re.sub(r"[^A-Z0-9]+", " ", s)
+        s = re.sub(r"\bSAINTE\b", "STE", s)
+        s = re.sub(r"\bSAINT\b", "ST", s)
+        return " ".join(s.split())
+    return bool(norm(a)) and norm(a) == norm(b)
 
 
 def _clean_label(label: str) -> str:
@@ -245,14 +260,43 @@ class OrobnatClient:
 
     # --- bulletin ----------------------------------------------------------
 
-    def bulletin(self, departement: str, commune: str, reseau: str) -> Bulletin:
+    def bulletin(
+        self,
+        departement: str,
+        commune: str,
+        reseau: str,
+        commune_nom: str | None = None,
+        max_bulletins: int = 0,
+        max_age_days: int = 730,
+    ) -> Bulletin:
+        """Dernier bulletin du réseau. Avec commune_nom : le plus récent prélevé dans cette commune, en
+        remontant au plus max_bulletins bulletins précédents (bouton « Bulletin précédent » : posPLV + 1) et
+        pas plus vieux que max_age_days ; à défaut, le dernier bulletin du réseau (commune_trouvee = False)."""
         self._post("changerDepartement", departement=departement, communeDepartement="", reseau="")
         self._post("changerCommune", departement=departement, communeDepartement=commune, reseau="")
         if reseau not in {v for v, _ in self._options("reseau")}:
             raise OrobnatError(f"Réseau {reseau} introuvable pour la commune {commune}")
         self._post("changerReseau", departement=departement, communeDepartement=commune, reseau=reseau)
         self._post("rechercher", departement=departement, communeDepartement=commune, reseau=reseau, posPLV="0")
-        return parse_bulletin(self._last_html)
+        latest = parse_bulletin(self._last_html)
+        if not commune_nom:
+            return latest
+        if same_commune(latest.infos.get("Commune de prélèvement", ""), commune_nom):
+            latest.commune_trouvee = True
+            return latest
+        oldest = (latest.date_prelevement or datetime.now()) - timedelta(days=max_age_days)
+        for pos in range(1, max_bulletins + 1):
+            self._post("rechercher", departement=departement, communeDepartement=commune, reseau=reseau, posPLV=str(pos))
+            older = parse_bulletin(self._last_html)
+            date = older.date_prelevement
+            if not older.infos or (date is not None and date < oldest):
+                break
+            if same_commune(older.infos.get("Commune de prélèvement", ""), commune_nom):
+                older.position = pos
+                older.commune_trouvee = True
+                return older
+        latest.commune_trouvee = False
+        return latest
 
 
 # --- conversion des valeurs ------------------------------------------------

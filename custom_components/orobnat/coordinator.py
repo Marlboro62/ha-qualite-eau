@@ -15,11 +15,15 @@ from homeassistant.util import slugify
 from .api import OrobnatClient, OrobnatError
 from .const import (
     CONF_COMMUNE,
+    CONF_COMMUNE_NOM,
+    CONF_MA_COMMUNE,
     CONF_DEPARTEMENT,
     CONF_REGION,
     CONF_RESEAU,
     DEFAULT_TZ,
     DOMAIN,
+    MA_COMMUNE_MAX_AGE_DAYS,
+    MA_COMMUNE_MAX_BULLETINS,
     REGION_TZ,
     UPDATE_INTERVAL,
 )
@@ -60,8 +64,16 @@ class OrobnatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _fetch(self):
         d = self.entry.data
+        mine = self.entry.options.get(CONF_MA_COMMUNE, False)
         with OrobnatClient(d[CONF_REGION]) as client:
-            return client.bulletin(d[CONF_DEPARTEMENT], d[CONF_COMMUNE], d[CONF_RESEAU])
+            return client.bulletin(
+                d[CONF_DEPARTEMENT],
+                d[CONF_COMMUNE],
+                d[CONF_RESEAU],
+                commune_nom=d.get(CONF_COMMUNE_NOM) if mine else None,
+                max_bulletins=MA_COMMUNE_MAX_BULLETINS,
+                max_age_days=MA_COMMUNE_MAX_AGE_DAYS,
+            )
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
@@ -82,8 +94,16 @@ class OrobnatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             }
         await self._store.async_save({"parametres": self._parametres})
 
+        if bulletin.commune_trouvee is False:
+            _LOGGER.info(
+                "%s : aucun prélèvement fait dans la commune parmi les %s derniers bulletins du réseau "
+                "(ni depuis %s jours) ; dernier bulletin du réseau utilisé",
+                self.entry.title, MA_COMMUNE_MAX_BULLETINS, MA_COMMUNE_MAX_AGE_DAYS,
+            )
         return {
             "infos": bulletin.infos,
+            "position": bulletin.position,
+            "commune_trouvee": bulletin.commune_trouvee,
             "date": date_iso,
             "analyses": [asdict(a) for a in bulletin.analyses],
             "parametres": dict(self._parametres),

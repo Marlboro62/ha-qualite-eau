@@ -4,20 +4,28 @@
       "user": {
         "title": "Qualité de l'eau potable",
         "description": "Choisissez votre région. Les données viennent du contrôle sanitaire des ARS (orobnat.sante.gouv.fr).",
-        "data": { "region": "Région" }
+        "data": {
+          "region": "Région"
+        }
       },
       "departement": {
         "title": "Département",
-        "data": { "departement": "Département" }
+        "data": {
+          "departement": "Département"
+        }
       },
       "commune": {
         "title": "Commune",
-        "data": { "commune": "Commune" }
+        "data": {
+          "commune": "Commune"
+        }
       },
       "reseau": {
         "title": "Réseau de distribution",
         "description": "Plusieurs réseaux alimentent {commune}. Choisissez celui de votre adresse (voir votre facture d'eau ou votre mairie en cas de doute).",
-        "data": { "reseau": "Réseau" }
+        "data": {
+          "reseau": "Réseau"
+        }
       }
     },
     "abort": {
@@ -28,8 +36,23 @@
   },
   "entity": {
     "sensor": {
-      "bulletin": { "name": "Bulletin" },
-      "date_prelevement": { "name": "Date du prélèvement" }
+      "bulletin": {
+        "name": "Bulletin"
+      },
+      "date_prelevement": {
+        "name": "Date du prélèvement"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Prélèvements de ma commune",
+        "description": "Un réseau dessert souvent plusieurs communes, et l'ARS prélève tour à tour dans chacune : le dernier bulletin peut venir d'une commune voisine (même eau). Cochez pour remonter les bulletins précédents jusqu'au dernier prélèvement fait à {commune} (20 bulletins et 2 ans au plus ; sinon, le dernier bulletin du réseau).",
+        "data": {
+          "ma_commune": "Seulement les prélèvements faits à {commune}"
+        }
+      }
     }
   }
 }

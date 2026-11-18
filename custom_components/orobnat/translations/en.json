@@ -4,20 +4,28 @@
       "user": {
         "title": "Drinking water quality",
         "description": "Choose your region. Data comes from the French health authorities' sanitary checks (orobnat.sante.gouv.fr).",
-        "data": { "region": "Region" }
+        "data": {
+          "region": "Region"
+        }
       },
       "departement": {
         "title": "Département",
-        "data": { "departement": "Département" }
+        "data": {
+          "departement": "Département"
+        }
       },
       "commune": {
         "title": "Town",
-        "data": { "commune": "Town" }
+        "data": {
+          "commune": "Town"
+        }
       },
       "reseau": {
         "title": "Distribution network",
         "description": "Several networks supply {commune}. Choose the one serving your address (see your water bill or ask your town hall).",
-        "data": { "reseau": "Network" }
+        "data": {
+          "reseau": "Network"
+        }
       }
     },
     "abort": {
@@ -28,8 +36,23 @@
   },
   "entity": {
     "sensor": {
-      "bulletin": { "name": "Report" },
-      "date_prelevement": { "name": "Sampling date" }
+      "bulletin": {
+        "name": "Report"
+      },
+      "date_prelevement": {
+        "name": "Sampling date"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Samples from my town",
+        "description": "A network often serves several towns, and samples are taken in each in turn: the latest report may come from a neighbouring town (same water). Tick to go back through older reports to the latest sample taken in {commune} (at most 20 reports and 2 years; otherwise, the network's latest report).",
+        "data": {
+          "ma_commune": "Only samples taken in {commune}"
+        }
+      }
     }
   }
 }

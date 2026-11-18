@@ -4,20 +4,28 @@
       "user": {
         "title": "Drinking water quality",
         "description": "Choose your region. Data comes from the French health authorities' sanitary checks (orobnat.sante.gouv.fr).",
-        "data": { "region": "Region" }
+        "data": {
+          "region": "Region"
+        }
       },
       "departement": {
         "title": "Département",
-        "data": { "departement": "Département" }
+        "data": {
+          "departement": "Département"
+        }
       },
       "commune": {
         "title": "Town",
-        "data": { "commune": "Town" }
+        "data": {
+          "commune": "Town"
+        }
       },
       "reseau": {
         "title": "Distribution network",
         "description": "Several networks supply {commune}. Choose the one serving your address (see your water bill or ask your town hall).",
-        "data": { "reseau": "Network" }
+        "data": {
+          "reseau": "Network"
+        }
       }
     },
     "abort": {
@@ -28,8 +36,23 @@
   },
   "entity": {
     "sensor": {
-      "bulletin": { "name": "Report" },
-      "date_prelevement": { "name": "Sampling date" }
+      "bulletin": {
+        "name": "Report"
+      },
+      "date_prelevement": {
+        "name": "Sampling date"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Prélèvements de ma commune",
+        "description": "Un réseau dessert souvent plusieurs communes, et l'ARS prélève tour à tour dans chacune : le dernier bulletin peut venir d'une commune voisine (même eau). Cochez pour remonter les bulletins précédents jusqu'au dernier prélèvement fait à {commune} (20 bulletins et 2 ans au plus ; sinon, le dernier bulletin du réseau).",
+        "data": {
+          "ma_commune": "Seulement les prélèvements faits à {commune}"
+        }
+      }
     }
   }
 }

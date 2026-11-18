@@ -121,6 +121,9 @@ class BulletinSensor(_Base):
             "reseau": entry.data.get(CONF_RESEAU_NOM),
             "date_prelevement": data.get("date"),
             "commune_prelevement": infos.get("Commune de prélèvement"),
+            # option « prélèvements de ma commune » : rang du bulletin (0 = dernier du réseau) et résultat
+            "bulletins_remontes": data.get("position", 0),
+            "prelevement_dans_la_commune": data.get("commune_trouvee"),
             "installation": infos.get("Installation"),
             "distributeur": infos.get("Responsable de distribution"),
             "conclusions": infos.get("Conclusions sanitaires"),
