@@ -60,7 +60,12 @@ class QualiteEauCard extends HTMLElement {
     if (!config.entity) throw new Error("Indiquez « entity » : le capteur Bulletin de l'intégration Orobnat");
     this._config = { conclusions: true, ...config };
     this._last = null;
-    if (!this.shadowRoot) this.attachShadow({ mode: "open" });
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: "open" });
+      this.shadowRoot.addEventListener("click", (ev) => {
+        if (ev.target.closest?.("a.source")) ouvrirBulletin(ev, this._last?.attributes || {});
+      });
+    }
   }
 
   getCardSize() {
@@ -154,10 +159,35 @@ class QualiteEauCard extends HTMLElement {
             ? `<table><thead><tr><th>Paramètre</th><th>Valeur</th><th>Seuil</th></tr></thead><tbody>${lignes}</tbody></table>`
             : `<div class="msg">Aucune analyse dans le dernier bulletin.</div>`
         }
-        <div class="src"><a href="${esc(a.source || "https://orobnat.sante.gouv.fr")}" target="_blank" rel="noreferrer">Source : ministère de la Santé / ARS</a></div>
+        <div class="src"><a class="source" href="${esc(a.source || "https://orobnat.sante.gouv.fr")}" target="_blank" rel="noreferrer">Source : ministère de la Santé / ARS</a></div>
       </ha-card>${STYLE}`;
   }
 }
+
+// Orobnat ne sert un bulletin qu'à un navigateur qui a déjà ouvert la page de la région (session) : sans elle,
+// l'adresse du bulletin répond en erreur 500. On ouvre donc la page de la région, puis on passe le même onglet
+// au département (pour que le formulaire du site montre la bonne commune) et enfin au bulletin. Sans
+// « source_bulletin » (ancienne version de l'intégration) ou en clic avec modificateur : simple lien.
+const ETAPE_MS = 1500;
+const ouvrirBulletin = (ev, a) => {
+  if (!a.source || !a.source_bulletin || ev.button || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) return;
+  ev.preventDefault();
+  const w = window.open(a.source, "_blank");
+  if (!w) return; // application mobile : la page de la région s'ouvre dans le navigateur
+  const departement = new URL(a.source_bulletin);
+  departement.searchParams.set("methode", "changerDepartement");
+  const aller = (url) => {
+    try {
+      if (!w.closed) w.location.href = url;
+    } catch (e) {
+      /* onglet fermé ou inaccessible : on garde la page de la région */
+    }
+  };
+  setTimeout(() => {
+    aller(departement.href);
+    setTimeout(() => aller(a.source_bulletin), ETAPE_MS);
+  }, ETAPE_MS);
+};
 
 const flag = (label, v) => {
   if (!v) return "";

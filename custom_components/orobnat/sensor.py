@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 from datetime import datetime
 from typing import Any
+from urllib.parse import urlencode
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -16,10 +17,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import OrobnatConfigEntry
-from .api import parse_valeur
+from .api import BASE_URL, parse_valeur
 from .const import (
     ATTRIBUTION,
+    CONF_COMMUNE,
     CONF_COMMUNE_NOM,
+    CONF_DEPARTEMENT,
+    CONF_REGION,
     CONF_RESEAU,
     CONF_RESEAU_NOM,
     DOMAIN,
@@ -27,6 +31,23 @@ from .const import (
 from .coordinator import OrobnatCoordinator
 
 ORO_URL = "https://orobnat.sante.gouv.fr/orobnat/afficherPage.do?methode=menu&usd=AEP&idRegion={}"
+
+
+def bulletin_url(data: dict[str, Any], position: int = 0) -> str:
+    """Adresse du bulletin affiché (commune, réseau, rang). Orobnat ne la sert qu'à un navigateur qui a déjà
+    ouvert la page de la région (ORO_URL) : sans cette session, le site répond en erreur 500. La carte ouvre
+    donc la page de la région, puis cette adresse."""
+    return f"{BASE_URL}/rechercherResultatQualite.do?" + urlencode(
+        {
+            "methode": "rechercher",
+            "idRegion": data[CONF_REGION],
+            "usd": "AEP",
+            "posPLV": position,
+            "departement": data[CONF_DEPARTEMENT],
+            "communeDepartement": data[CONF_COMMUNE],
+            "reseau": data[CONF_RESEAU],
+        }
+    )
 
 # Préfixe de l'identifiant du paramètre (slug) -> icône.
 ICONS = {
@@ -132,6 +153,7 @@ class BulletinSensor(_Base):
             "respect_references_qualite": infos.get("Respect des références de qualité"),
             "analyses": data.get("analyses", []),
             "source": ORO_URL.format(entry.data["region"]),
+            "source_bulletin": bulletin_url(entry.data, data.get("position", 0)),
         }
 
 
