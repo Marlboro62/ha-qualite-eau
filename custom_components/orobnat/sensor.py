@@ -30,12 +30,24 @@ from .const import (
 )
 from .coordinator import OrobnatCoordinator
 
-ORO_URL = "https://orobnat.sante.gouv.fr/orobnat/afficherPage.do?methode=menu&usd=AEP&idRegion={}"
+def region_url(data: dict[str, Any]) -> str:
+    """Page de recherche de la région, département, commune et réseau déjà sélectionnés (paramètres dpt,
+    comDpt et reseau, signalés par alju67 dans l'issue #4) : il ne reste qu'à cliquer sur « Rechercher »."""
+    return f"{BASE_URL}/afficherPage.do?" + urlencode(
+        {
+            "methode": "menu",
+            "usd": "AEP",
+            "idRegion": data[CONF_REGION],
+            "dpt": data[CONF_DEPARTEMENT],
+            "comDpt": data[CONF_COMMUNE],
+            "reseau": data[CONF_RESEAU],
+        }
+    )
 
 
 def bulletin_url(data: dict[str, Any], position: int = 0) -> str:
     """Adresse du bulletin affiché (commune, réseau, rang). Orobnat ne la sert qu'à un navigateur qui a déjà
-    ouvert la page de la région (ORO_URL) : sans cette session, le site répond en erreur 500. La carte ouvre
+    ouvert la page de la région (region_url) : sans cette session, le site répond en erreur 500. La carte ouvre
     donc la page de la région, puis cette adresse."""
     return f"{BASE_URL}/rechercherResultatQualite.do?" + urlencode(
         {
@@ -102,7 +114,7 @@ class _Base(CoordinatorEntity[OrobnatCoordinator], SensorEntity):
             model=entry.data.get(CONF_RESEAU_NOM),
             serial_number=entry.data.get(CONF_RESEAU),
             entry_type=DeviceEntryType.SERVICE,
-            configuration_url=ORO_URL.format(entry.data["region"]),
+            configuration_url=region_url(entry.data),
         )
 
 
@@ -152,7 +164,7 @@ class BulletinSensor(_Base):
             "conformite_physico_chimique": infos.get("Conformité physico-chimique"),
             "respect_references_qualite": infos.get("Respect des références de qualité"),
             "analyses": data.get("analyses", []),
-            "source": ORO_URL.format(entry.data["region"]),
+            "source": region_url(entry.data),
             "source_bulletin": bulletin_url(entry.data, data.get("position", 0)),
         }
 

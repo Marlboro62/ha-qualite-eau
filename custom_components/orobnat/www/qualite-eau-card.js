@@ -9,7 +9,7 @@
  *   conclusions: true
  *   replier: true      # résultats d'analyses repliés, à déplier d'un clic
  */
-const CARD_VERSION = "1.3.1";
+const CARD_VERSION = "1.3.2";
 
 const num = (s) => {
   const m = String(s ?? "").match(/-?\d+(?:[.,]\d+)?/);
@@ -179,13 +179,12 @@ class QualiteEauCard extends HTMLElement {
 }
 
 // Orobnat ne sert un bulletin qu'à un navigateur qui a déjà ouvert la page de la région (session) : sans elle,
-// l'adresse du bulletin répond en erreur 500. On ouvre donc la page de la région, puis on fait passer le même
-// onglet par le département et la commune (pour que le formulaire du site montre la bonne commune et le bon
-// réseau) et enfin par le bulletin. Sans « source_bulletin » (ancienne version de l'intégration) ou en clic avec
-// modificateur : simple lien vers la page de la région.
+// l'adresse du bulletin répond en erreur 500. « source » est cette page, département, commune et réseau déjà
+// sélectionnés : la carte l'ouvre, puis fait passer le même onglet au bulletin (« source_bulletin »). Clic avec
+// modificateur, ou intégration plus ancienne sans « source_bulletin » : simple lien vers la page de la région.
 // Application Home Assistant (Android, iOS) : simple lien aussi. Elle confie chaque adresse au navigateur du
-// téléphone comme un nouveau lien et met les minuteries en pause quand elle passe en arrière-plan : les étapes
-// ne s'y enchaîneraient qu'à chaque appui sur « Retour » (issue #4).
+// téléphone comme un nouveau lien et met les minuteries en pause quand elle passe en arrière-plan : l'étape
+// suivante n'y partirait qu'à l'appui sur « Retour » (issue #4). La page préremplie y suffit : « Rechercher ».
 const ETAPE_MS = 1200;
 const appliHA = () => Boolean(window.externalAppV2 || window.externalApp || window.webkit?.messageHandlers?.externalBus);
 const ouvrirBulletin = (ev, a) => {
@@ -193,12 +192,14 @@ const ouvrirBulletin = (ev, a) => {
   ev.preventDefault();
   const w = window.open(a.source, "_blank");
   if (!w) return; // application mobile : la page de la région s'ouvre dans le navigateur
+  // page préremplie (« dpt ») : le bulletin suffit ; sinon (ancienne intégration), département et commune d'abord
   const etape = (methode) => {
     const u = new URL(a.source_bulletin);
     u.searchParams.set("methode", methode);
     return u.href;
   };
-  const etapes = [etape("changerDepartement"), etape("changerCommune"), a.source_bulletin];
+  const prerempli = new URL(a.source).searchParams.has("dpt");
+  const etapes = prerempli ? [a.source_bulletin] : [etape("changerDepartement"), etape("changerCommune"), a.source_bulletin];
   const suivante = () => {
     const url = etapes.shift();
     if (!url) return;
