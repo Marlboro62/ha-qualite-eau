@@ -9,7 +9,7 @@
  *   conclusions: true
  *   replier: true      # résultats d'analyses repliés, à déplier d'un clic
  */
-const CARD_VERSION = "1.2.0";
+const CARD_VERSION = "1.2.1";
 
 const num = (s) => {
   const m = String(s ?? "").match(/-?\d+(?:[.,]\d+)?/);
@@ -179,28 +179,34 @@ class QualiteEauCard extends HTMLElement {
 }
 
 // Orobnat ne sert un bulletin qu'à un navigateur qui a déjà ouvert la page de la région (session) : sans elle,
-// l'adresse du bulletin répond en erreur 500. On ouvre donc la page de la région, puis on passe le même onglet
-// au département (pour que le formulaire du site montre la bonne commune) et enfin au bulletin. Sans
-// « source_bulletin » (ancienne version de l'intégration) ou en clic avec modificateur : simple lien.
-const ETAPE_MS = 1500;
+// l'adresse du bulletin répond en erreur 500. On ouvre donc la page de la région, puis on fait passer le même
+// onglet par le département et la commune (pour que le formulaire du site montre la bonne commune et le bon
+// réseau) et enfin par le bulletin. Sans « source_bulletin » (ancienne version de l'intégration) ou en clic avec
+// modificateur : simple lien vers la page de la région.
+const ETAPE_MS = 1200;
 const ouvrirBulletin = (ev, a) => {
   if (!a.source || !a.source_bulletin || ev.button || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) return;
   ev.preventDefault();
   const w = window.open(a.source, "_blank");
   if (!w) return; // application mobile : la page de la région s'ouvre dans le navigateur
-  const departement = new URL(a.source_bulletin);
-  departement.searchParams.set("methode", "changerDepartement");
-  const aller = (url) => {
-    try {
-      if (!w.closed) w.location.href = url;
-    } catch (e) {
-      /* onglet fermé ou inaccessible : on garde la page de la région */
-    }
+  const etape = (methode) => {
+    const u = new URL(a.source_bulletin);
+    u.searchParams.set("methode", methode);
+    return u.href;
   };
-  setTimeout(() => {
-    aller(departement.href);
-    setTimeout(() => aller(a.source_bulletin), ETAPE_MS);
-  }, ETAPE_MS);
+  const etapes = [etape("changerDepartement"), etape("changerCommune"), a.source_bulletin];
+  const suivante = () => {
+    const url = etapes.shift();
+    if (!url) return;
+    try {
+      if (w.closed) return;
+      w.location.href = url;
+    } catch (e) {
+      return; // onglet fermé ou inaccessible : on garde la page affichée
+    }
+    setTimeout(suivante, ETAPE_MS);
+  };
+  setTimeout(suivante, ETAPE_MS);
 };
 
 // Option « replier » : le tableau derrière un résumé cliquable (« 12 résultats d'analyses · 1 hors limite »)
