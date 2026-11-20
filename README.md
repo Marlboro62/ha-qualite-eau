@@ -28,7 +28,7 @@
 
 # <img src="custom_components/orobnat/brand/icon.png" alt="" height="40" align="top"> Qualité de l'eau potable (Orobnat) pour Home Assistant
 
-[![Marketplace Custom](https://img.shields.io/badge/Marketplace-Custom-41BDF5.svg)](https://www.home-assistant.io/integrations/marketplace/)
+[![Marketplace Default](https://img.shields.io/badge/Marketplace-Default-41BDF5.svg)](https://www.home-assistant.io/integrations/marketplace/)
 [![Release](https://img.shields.io/github/v/release/Marlboro62/ha-qualite-eau)](https://github.com/Marlboro62/ha-qualite-eau/releases)
 
 Suivez la qualité de l'eau du robinet de votre commune, avec les **derniers résultats du contrôle sanitaire** publiés par les ARS sur [orobnat.sante.gouv.fr](https://orobnat.sante.gouv.fr) : nitrates, chlore, pH, dureté, bactéries, conformité…
@@ -60,8 +60,6 @@ Merci à **[Cede69](https://forum.hacf.fr/u/cede69)** pour l'idée de départ : 
 
 1. Ouvrez **Paramètres → Marketplace** (ou HACS avant la 2026.11), ou utilisez le bouton ci-dessus.
 2. Cherchez **Qualité de l'eau (Orobnat)**, installez-la, puis **redémarrez Home Assistant**.
-
-Si l'intégration n'apparaît pas dans la recherche, ajoutez-la par son adresse : **Add from link** en haut à droite de la Marketplace (ou HACS → ⋮ → **Dépôts personnalisés**), collez `https://github.com/Marlboro62/ha-qualite-eau`, type **Intégration**, puis reprenez l'étape 2.
 
 ### Manuelle
 
