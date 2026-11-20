@@ -2,7 +2,7 @@
 from datetime import timedelta
 
 DOMAIN = "orobnat"
-VERSION = "1.3.0b1"
+VERSION = "1.3.0"
 
 CONF_REGION = "region"
 CONF_DEPARTEMENT = "departement"
