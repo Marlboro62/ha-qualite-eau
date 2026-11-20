@@ -9,7 +9,7 @@
  *   conclusions: true
  *   replier: true      # résultats d'analyses repliés, à déplier d'un clic
  */
-const CARD_VERSION = "1.3.0";
+const CARD_VERSION = "1.3.0b1";
 
 const num = (s) => {
   const m = String(s ?? "").match(/-?\d+(?:[.,]\d+)?/);
