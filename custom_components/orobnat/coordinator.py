@@ -53,11 +53,15 @@ class OrobnatCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.entry = entry
         self._store: Store[dict[str, Any]] = Store(hass, 1, f"{DOMAIN}.{entry.entry_id}")
         self._parametres: dict[str, dict[str, str]] = {}
-        self._tz = dt_util.get_time_zone(
-            REGION_TZ.get(entry.data[CONF_REGION], DEFAULT_TZ)
-        )
+        # Fuseau de la région, chargé dans async_load : sa première lecture se fait sur disque
+        self._tz = dt_util.DEFAULT_TIME_ZONE
 
     async def async_load(self) -> None:
+        tz = await dt_util.async_get_time_zone(
+            REGION_TZ.get(self.entry.data[CONF_REGION], DEFAULT_TZ)
+        )
+        if tz is not None:
+            self._tz = tz
         stored = await self._store.async_load()
         if stored:
             self._parametres = stored.get("parametres", {})

@@ -8,7 +8,7 @@
  *   parametres: [Nitrates, Chlore libre, pH, Titre hydrotimétrique]  # filtre (début du nom)
  *   conclusions: true
  */
-const CARD_VERSION = "1.1.2";
+const CARD_VERSION = "1.1.3";
 
 const num = (s) => {
   const m = String(s ?? "").match(/-?\d+(?:[.,]\d+)?/);
