@@ -121,6 +121,7 @@ Options :
 | `entity` | — | Le capteur **Bulletin** de la commune |
 | `title` | `Eau du robinet – <commune>` | Titre de la carte |
 | `conclusions` | `true` | Affiche le texte des conclusions sanitaires |
+| `replier` | `false` | Replie les résultats d'analyses sous une ligne « 12 résultats d'analyses · 1 hors limite », à déplier d'un clic |
 | `parametres` | tous | Liste de paramètres à afficher (début du nom), par exemple `[Nitrates, Chlore libre, pH, Titre hydrotimétrique]` |
 
 Chaque paramètre a une pastille : 🟢 dans les normes, 🟠 référence de qualité non respectée, 🔴 limite de qualité dépassée.

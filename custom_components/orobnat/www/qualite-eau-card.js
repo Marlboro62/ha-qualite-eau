@@ -7,8 +7,9 @@
  *   title: Eau du robinet
  *   parametres: [Nitrates, Chlore libre, pH, Titre hydrotimétrique]  # filtre (début du nom)
  *   conclusions: true
+ *   replier: true      # résultats d'analyses repliés, à déplier d'un clic
  */
-const CARD_VERSION = "1.1.3";
+const CARD_VERSION = "1.2.0";
 
 const num = (s) => {
   const m = String(s ?? "").match(/-?\d+(?:[.,]\d+)?/);
@@ -48,9 +49,15 @@ class QualiteEauCard extends HTMLElement {
         { name: "entity", required: true, selector: { entity: { domain: "sensor", integration: "orobnat" } } },
         { name: "title", selector: { text: {} } },
         { name: "conclusions", selector: { boolean: {} } },
+        { name: "replier", selector: { boolean: {} } },
       ],
       computeLabel: (s) =>
-        ({ entity: "Capteur « Bulletin »", title: "Titre (facultatif)", conclusions: "Afficher les conclusions sanitaires" })[
+        ({
+          entity: "Capteur « Bulletin »",
+          title: "Titre (facultatif)",
+          conclusions: "Afficher les conclusions sanitaires",
+          replier: "Replier les résultats d'analyses (à déplier d'un clic)",
+        })[
           s.name
         ],
     };
@@ -58,10 +65,18 @@ class QualiteEauCard extends HTMLElement {
 
   setConfig(config) {
     if (!config.entity) throw new Error("Indiquez « entity » : le capteur Bulletin de l'intégration Orobnat");
-    this._config = { conclusions: true, ...config };
+    this._config = { conclusions: true, replier: false, ...config };
+    this._ouvert = false; // résultats dépliés (option « replier »), gardé entre deux mises à jour
     this._last = null;
     if (!this.shadowRoot) {
       this.attachShadow({ mode: "open" });
+      this.shadowRoot.addEventListener(
+        "toggle",
+        (ev) => {
+          if (ev.target.matches?.("details.resultats")) this._ouvert = ev.target.open;
+        },
+        true
+      );
       this.shadowRoot.addEventListener("click", (ev) => {
         if (ev.target.closest?.("a.source")) ouvrirBulletin(ev, this._last?.attributes || {});
       });
@@ -105,6 +120,7 @@ class QualiteEauCard extends HTMLElement {
       analyses = analyses.filter((r) => f.some((x) => r.parametre.toLowerCase().startsWith(x)));
     }
 
+    const alertes = { bad: 0, warn: 0 };
     const lignes = analyses
       .map((r) => {
         const v = String(r.valeur).trim().startsWith("<") ? 0 : num(r.valeur);
@@ -121,6 +137,7 @@ class QualiteEauCard extends HTMLElement {
         } else if (v === null) {
           etat = "na";
         }
+        if (etat in alertes) alertes[etat] += 1;
         // « ≥ et ≤ 25 °C » (pas de minimum publié) -> « ≤ 25 °C »
         const seuil = (propre(r.limite) || propre(r.reference)).replace(/≥\s*et\s+/, "").trim();
         return `<tr title="${esc(info)}">
@@ -131,6 +148,7 @@ class QualiteEauCard extends HTMLElement {
       })
       .join("");
 
+    const tableau = `<table><thead><tr><th>Paramètre</th><th>Valeur</th><th>Seuil</th></tr></thead><tbody>${lignes}</tbody></table>`;
     const titre = this._config.title || `Eau du robinet – ${a.commune ? a.commune : ""}`;
     // Nom du réseau seulement s'il apporte une information (≠ nom de la commune).
     const norm = (s) => String(s ?? "").normalize("NFD").replace(/[^a-z0-9]/gi, "").toLowerCase();
@@ -154,11 +172,7 @@ class QualiteEauCard extends HTMLElement {
           ${flag("Physico-chimie", a.conformite_physico_chimique)}
           ${flag("Références", a.respect_references_qualite)}
         </div>
-        ${
-          lignes
-            ? `<table><thead><tr><th>Paramètre</th><th>Valeur</th><th>Seuil</th></tr></thead><tbody>${lignes}</tbody></table>`
-            : `<div class="msg">Aucune analyse dans le dernier bulletin.</div>`
-        }
+        ${lignes ? (this._config.replier ? replie(tableau, analyses.length, alertes, this._ouvert) : tableau) : `<div class="msg">Aucune analyse dans le dernier bulletin.</div>`}
         <div class="src"><a class="source" href="${esc(a.source || "https://orobnat.sante.gouv.fr")}" target="_blank" rel="noreferrer">Source : ministère de la Santé / ARS</a></div>
       </ha-card>${STYLE}`;
   }
@@ -187,6 +201,18 @@ const ouvrirBulletin = (ev, a) => {
     aller(departement.href);
     setTimeout(() => aller(a.source_bulletin), ETAPE_MS);
   }, ETAPE_MS);
+};
+
+// Option « replier » : le tableau derrière un résumé cliquable (« 12 résultats d'analyses · 1 hors limite »)
+const replie = (tableau, n, alertes, ouvert) => {
+  const details = [
+    alertes.bad ? `<span class="bad">${alertes.bad} hors limite${alertes.bad > 1 ? "s" : ""}</span>` : "",
+    alertes.warn ? `<span class="warn">${alertes.warn} hors référence${alertes.warn > 1 ? "s" : ""}</span>` : "",
+  ].filter(Boolean);
+  return `<details class="resultats"${ouvert ? " open" : ""}>
+    <summary><ha-icon icon="mdi:chevron-down"></ha-icon>${n} résultat${n > 1 ? "s" : ""} d'analyses${details.length ? " · " + details.join(" · ") : ""}</summary>
+    ${tableau}
+  </details>`;
 };
 
 const flag = (label, v) => {
@@ -229,6 +255,15 @@ const STYLE = `<style>
   .src { margin-top: 10px; font-size: .8em; }
   .src a { color: inherit; }
   .msg { padding: 8px 0; color: var(--secondary-text-color); }
+  details.resultats { margin-top: 8px; }
+  details.resultats summary { display: flex; align-items: center; gap: 4px; cursor: pointer; list-style: none;
+                              padding: 6px 0; font-size: .9em; color: var(--secondary-text-color); user-select: none; }
+  details.resultats summary::-webkit-details-marker { display: none; }
+  details.resultats summary ha-icon { --mdc-icon-size: 20px; transition: transform .2s; }
+  details.resultats[open] summary ha-icon { transform: rotate(180deg); }
+  details.resultats summary .bad { color: var(--error-color, #db4437); font-weight: 500; }
+  details.resultats summary .warn { color: var(--warning-color, #ffa600); font-weight: 500; }
+  details.resultats table { margin-top: 0; }
 </style>`;
 
 if (!customElements.get("qualite-eau-card")) {
