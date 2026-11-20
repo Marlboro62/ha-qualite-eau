@@ -9,7 +9,7 @@
  *   conclusions: true
  *   replier: true      # résultats d'analyses repliés, à déplier d'un clic
  */
-const CARD_VERSION = "1.3.0";
+const CARD_VERSION = "1.3.1";
 
 const num = (s) => {
   const m = String(s ?? "").match(/-?\d+(?:[.,]\d+)?/);
@@ -183,9 +183,13 @@ class QualiteEauCard extends HTMLElement {
 // onglet par le département et la commune (pour que le formulaire du site montre la bonne commune et le bon
 // réseau) et enfin par le bulletin. Sans « source_bulletin » (ancienne version de l'intégration) ou en clic avec
 // modificateur : simple lien vers la page de la région.
+// Application Home Assistant (Android, iOS) : simple lien aussi. Elle confie chaque adresse au navigateur du
+// téléphone comme un nouveau lien et met les minuteries en pause quand elle passe en arrière-plan : les étapes
+// ne s'y enchaîneraient qu'à chaque appui sur « Retour » (issue #4).
 const ETAPE_MS = 1200;
+const appliHA = () => Boolean(window.externalAppV2 || window.externalApp || window.webkit?.messageHandlers?.externalBus);
 const ouvrirBulletin = (ev, a) => {
-  if (!a.source || !a.source_bulletin || ev.button || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey) return;
+  if (!a.source || !a.source_bulletin || ev.button || ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey || appliHA()) return;
   ev.preventDefault();
   const w = window.open(a.source, "_blank");
   if (!w) return; // application mobile : la page de la région s'ouvre dans le navigateur
