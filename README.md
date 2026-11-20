@@ -126,6 +126,28 @@ Options :
 
 Chaque paramètre a une pastille : 🟢 dans les normes, 🟠 référence de qualité non respectée, 🔴 limite de qualité dépassée.
 
+### Carte « Panneau » (depuis la 1.3.0)
+
+Une deuxième carte, dans le style des cartes [MyElectricalData](https://github.com/Marlboro62/content-card-linky-new) : en-tête avec la conformité bactériologique et physico-chimique, bloc principal (conformité, date du prélèvement, répartition des paramètres dans les normes, hors référence et hors limite), **tuiles** pour les paramètres clés avec une jauge de leurs normes et leur évolution depuis le prélèvement précédent, et **historique** du paramètre choisi (cliquez sur une tuile, puis sur un point). **Ajouter une carte → « Qualité de l'eau · Panneau »**, ou en YAML :
+
+```yaml
+type: custom:qualite-eau-panneau-card
+entity: sensor.eau_lyon_bulletin
+```
+
+| Option | Défaut | Description |
+|---|---|---|
+| `entity` | — | Le capteur **Bulletin** de la commune |
+| `title` | `Eau du robinet` | Titre de la carte |
+| `theme` | `v2` | `v2` : bleu nuit ; `auto` : bleu nuit ou clair selon le mode de Home Assistant ; `ha` : couleurs du thème Home Assistant |
+| `parametres` | `[Nitrates, Chlore libre, pH, Titre hydrotimétrique]` | Paramètres des tuiles (début du nom, dans l'ordre) |
+| `historique` | `12` | Nombre de prélèvements dans le graphique ; `0` le masque |
+| `conclusions` | `true` | Affiche les conclusions sanitaires |
+| `liste` | `true` | Affiche tous les résultats, repliés sous une ligne |
+| `font_size` | `100` | Taille du texte, de 70 à 150 % |
+
+L'historique vient de l'enregistreur de Home Assistant : il se remplit au fil des bulletins, à partir de l'installation de l'intégration (deux ans au plus).
+
 ## Exemple d'automatisation
 
 ```yaml
